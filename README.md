@@ -1,4 +1,4 @@
-# PHPOO
+# PHP OO
 
 ## PHP 8 Orienté Objet
 
