@@ -67,7 +67,14 @@ class ArticleManager implements ManagerInterface, CrudInterface
 
     public function readBySlug(string $slug): bool|AbstractMapping
     {
-        $sql = "SELECT * FROM `article` WHERE `article_slug` = ? AND `article_visibility`=1";
+        $sql = "SELECT a.*, GROUP_CONCAT(c.`category_name` SEPARATOR '|||') AS `category_name`, 
+                       GROUP_CONCAT(c.`category_slug` SEPARATOR '|||') AS `category_slug`
+                FROM `article` a
+                LEFT JOIN `article_has_category` h 
+                    ON a.`id`=h.`article_id`
+                LEFT JOIN `category` c
+                    ON h.`category_id`=c.`id` 
+                WHERE a.`article_slug` = ? AND `article_visibility`=1";
         $prepare = $this->db->prepare($sql);
         $prepare->bindValue(1,$slug);
         try{
@@ -79,6 +86,19 @@ class ArticleManager implements ManagerInterface, CrudInterface
             $result = $prepare->fetch(PDO::FETCH_ASSOC);
             // création de l'instance de type ArticleMapping
             $article = new ArticleMapping($result);
+            // on a les catégories dans l'article
+            if(!is_null($result['category_name'])){
+                $names = explode("|||",$result['category_name']);
+                $slugs = explode("|||",$result['category_slug']);
+                $categories = [];
+                for($i=0; $i<count($names); $i++){
+                    $categories[] = new CategoryMapping([
+                        "category_name"=>$names[$i],
+                        "category_slug"=>$slugs[$i]
+                    ]);
+                }
+                $article->setCategory($categories);
+            }
             $prepare->closeCursor();
             return $article;
 
@@ -188,4 +208,51 @@ class ArticleManager implements ManagerInterface, CrudInterface
         $query->closeCursor();
         return $result;
     }
+    // on souhaite récupérer tous les articles d'une catégorie
+    public function readAllByCategorySlug(string $slug, bool $orderDesc = true): array|bool
+    {
+        $sql = "SELECT a.`id`, a.`article_title`, a.`article_slug`, LEFT(a.`article_text`,250) AS `article_text`, a.`article_date`,
+                 GROUP_CONCAT(c.`category_name` SEPARATOR '|||') AS `category_name`, GROUP_CONCAT(c.`category_slug` SEPARATOR '|||') AS `category_slug`
+                    FROM `article` a
+                    LEFT JOIN `article_has_category` h 
+                        ON a.`id`=h.`article_id`
+                    LEFT JOIN `category` c
+                        ON h.`category_id`=c.`id`
+                    WHERE a.`article_visibility`=1 AND c.`category_slug`=?
+                    GROUP BY a.`id`";
+        if ($orderDesc === true)
+            $sql .= "ORDER BY `article_date` DESC";
+        $prepare = $this->db->prepare($sql);
+        $prepare->bindValue(1, $slug);
+        try {
+            $prepare->execute();
+            // si pas d'article récupéré
+            if ($prepare->rowCount() === 0)
+                return false;
+            $stmt = $prepare->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($stmt as $item) {
+                // réutilisation des setters
+                $result[] = new ArticleMapping($item);
+                // on a les catégories dans l'article
+                if (!is_null($item['category_name']) && !is_null($item['category_slug'])) {
+                    $names = explode("|||", $item['category_name']);
+                    $slugs = explode("|||", $item['category_slug']);
+                    $categories = [];
+                    for ($i = 0; $i < count($names); $i++) {
+                        $categories[] = new CategoryMapping([
+                            "category_name" => $names[$i],
+                            "category_slug" => $slugs[$i]
+                        ]);
+                    }
+
+                }
+                $result[count($result) - 1]->setCategory($categories);
+            }
+            $prepare->closeCursor();
+            return $result;
+        } catch (Exception $e) {
+            die($e->getMessage());
+        }
+    }
+
 }

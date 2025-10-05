@@ -36,7 +36,7 @@
             <h4>Catégorie<?=(count($item->getCategory())>1)?"s":""?> :
                 <?php
                 foreach ($item->getCategory() as $cat):
-                    echo "<a href='?p=category&slug=".$cat->getCategorySlug()."'>".html_entity_decode($cat->getCategoryName())."</a> |";
+                    echo "<a href='?p=category&slug=".$cat->getCategorySlug()."'>".html_entity_decode($cat->getCategoryName())."</a> | ";
                 endforeach;
                 endif;
                 ?>

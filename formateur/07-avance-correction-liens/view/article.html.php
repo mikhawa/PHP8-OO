@@ -18,9 +18,19 @@
         <div  class="article">
             <h3><?=html_entity_decode($article->getArticleTitle())?></h3>
             <h4>Écrit le <?=$article->getArticleDate()?></h4>
+            <?php // gestion des catégories
+            if(!empty($article->getCategory())): ?>
+            <h4>Catégorie<?=(count($article->getCategory())>1)?"s":""?> :
+                <?php
+                foreach ($article->getCategory() as $cat):
+                    echo "<a href='?p=category&slug=".$cat->getCategorySlug()."'>".html_entity_decode($cat->getCategoryName())."</a> | ";
+                endforeach;
+                endif;
+                ?>
+            </h4>
             <p><?=nl2br(html_entity_decode($article->getArticleText())); ?></p>
         </div>
 
-<?php //var_dump($connectPDO,$ArticleManager,$nosArticle); ?>
+<?php var_dump($article); ?>
 </body>
 </html>
