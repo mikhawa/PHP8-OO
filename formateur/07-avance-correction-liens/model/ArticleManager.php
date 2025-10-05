@@ -155,7 +155,15 @@ class ArticleManager implements ManagerInterface, CrudInterface
     // pour la page d'accueil
     public function readAllVisible(bool $orderDesc = true): array
     {
-        $sql = "SELECT `id`, `article_title`, `article_slug`, LEFT(`article_text`,250) AS `article_text`, `article_date`  FROM `article` WHERE `article_visibility`=1 ";
+        $sql = "SELECT a.`id`, a.`article_title`, a.`article_slug`, LEFT(a.`article_text`,250) AS `article_text`, a.`article_date`,
+                 GROUP_CONCAT(c.`category_name` SEPARATOR '|||') AS `category_name`, GROUP_CONCAT(c.`category_slug` SEPARATOR '|||') AS `category_slug`
+                    FROM `article` a
+                    LEFT JOIN `article_has_category` h 
+                        ON a.`id`=h.`article_id`
+                    LEFT JOIN `category` c
+                        ON h.`category_id`=c.`id`
+                    WHERE a.`article_visibility`=1 
+                    GROUP BY a.`id`";
         if($orderDesc===true)
             $sql .= "ORDER BY `article_date` DESC";
         $query = $this->db->query($sql);
@@ -163,6 +171,19 @@ class ArticleManager implements ManagerInterface, CrudInterface
         foreach ($stmt as $item){
             // réutilisation des setters
             $result[] = new ArticleMapping($item);
+            // on a les catégories dans l'article
+            if(!is_null($item['category_name']) && !is_null($item['category_slug'])){
+                $names = explode("|||",$item['category_name']);
+                $slugs = explode("|||",$item['category_slug']);
+                $categories = [];
+                for($i=0; $i<count($names); $i++){
+                    $categories[] = new CategoryMapping([
+                        "category_name"=>$names[$i],
+                        "category_slug"=>$slugs[$i]
+                    ]);
+                }
+                $result[count($result)-1]->setCategory($categories);
+            }
         }
         $query->closeCursor();
         return $result;

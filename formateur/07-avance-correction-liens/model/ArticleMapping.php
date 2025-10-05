@@ -126,5 +126,15 @@ class ArticleMapping extends AbstractMapping{
             $this->article_visibility = $article_visibility;
     }
 
+    public function getCategory(): ?array
+    {
+        return $this->category;
+    }
+
+    public function setCategory(?array $category): void
+    {
+        $this->category = $category;
+    }
+
 
 }

@@ -32,6 +32,15 @@
         <div id="article<?=$i?>" class="article">
             <h3><a href="?p=article&slug=<?=$item->getArticleSlug()?>"><?=html_entity_decode($item->getArticleTitle())?></a></h3>
             <h4>Écrit le <?=$item->getArticleDate()?></h4>
+            <?php if(!empty($item->getCategory())): ?>
+            <h4>Catégorie<?=(count($item->getCategory())>1)?"s":""?> :
+                <?php
+                foreach ($item->getCategory() as $cat):
+                    echo "<a href='?p=category&slug=".$cat->getCategorySlug()."'>".html_entity_decode($cat->getCategoryName())."</a> |";
+                endforeach;
+                endif;
+                ?>
+            </h4>
             <p><?=$ArticleManager::cutTheText(html_entity_decode($item->getArticleText()),150);
             // Méthode statique pour couper le texte à 150 caractères maximum
                 ?></p>
@@ -41,6 +50,6 @@
         endforeach;
     endif;
     ?>
-<?php //var_dump($connectPDO,$ArticleManager,$nosArticle); ?>
+<?php var_dump($nosArticle); ?>
 </body>
 </html>
