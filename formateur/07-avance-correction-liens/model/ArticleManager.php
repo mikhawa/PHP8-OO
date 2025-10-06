@@ -212,7 +212,13 @@ class ArticleManager implements ManagerInterface, CrudInterface
     public function readAllByCategorySlug(string $slug, bool $orderDesc = true): array|bool
     {
         $sql = "SELECT a.`id`, a.`article_title`, a.`article_slug`, LEFT(a.`article_text`,250) AS `article_text`, a.`article_date`,
-                 GROUP_CONCAT(c.`category_name` SEPARATOR '|||') AS `category_name`, GROUP_CONCAT(c.`category_slug` SEPARATOR '|||') AS `category_slug`
+       -- pour récupérer toutes les catégories de l'article en étant dans une catégorie !
+                 (SELECT GROUP_CONCAT(ca.`category_name`, '|||', ca.`category_slug` SEPARATOR '---') 
+                    FROM `article_has_category` ha
+                    LEFT JOIN `category` ca
+                        ON ha.`category_id`=ca.`id`
+                    WHERE ha.`article_id`=a.`id`
+                 ) as `totalCategory`
                     FROM `article` a
                     LEFT JOIN `article_has_category` h 
                         ON a.`id`=h.`article_id`
@@ -234,14 +240,14 @@ class ArticleManager implements ManagerInterface, CrudInterface
                 // réutilisation des setters
                 $result[] = new ArticleMapping($item);
                 // on a les catégories dans l'article
-                if (!is_null($item['category_name']) && !is_null($item['category_slug'])) {
-                    $names = explode("|||", $item['category_name']);
-                    $slugs = explode("|||", $item['category_slug']);
+                if (!is_null($item['totalCategory'])) {
+                    $cats = explode("---", $item['totalCategory']);
                     $categories = [];
-                    for ($i = 0; $i < count($names); $i++) {
+                    foreach ($cats as $cat) {
+                        [$name, $catslug] = explode("|||", $cat);
                         $categories[] = new CategoryMapping([
-                            "category_name" => $names[$i],
-                            "category_slug" => $slugs[$i]
+                            "category_name" => $name,
+                            "category_slug" => $catslug
                         ]);
                     }
 
