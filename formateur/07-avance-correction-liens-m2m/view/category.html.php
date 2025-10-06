@@ -20,9 +20,37 @@
             <p><?=!is_null($category->getCategoryDesc())?nl2br(html_entity_decode($category->getCategoryDesc())):"Pas de description"; ?></p>
         </div>
     <?php
-
+    if(empty($articles)):
+        ?>
+        <p>Aucun article dans cette catégorie</p>
+        <?php
+    else:
+        foreach ($articles as $article):
+            ?>
+            <div class="Article">
+                <h3><a href="./?p=article&slug=<?=$article->getArticleSlug()?>"><?=html_entity_decode($article->getArticleTitle())?></a></h3>
+                <?php
+                // on a de(s) catégorie(s) (tableau non vide)
+                if(!empty($article->getCategory())):
+                // nombre de catégorie(s)
+                $compteCateg = count($article->getCategory());
+                $pluriel = $compteCateg>1 ?"s":"";
+                ?>
+                <h4>Catégorie<?=$pluriel?> :
+                <?php
+                    $categs = $article->getCategory();
+                    foreach ($categs as $categ):
+                        echo '<a href="./?p=category&slug='.$categ->getCategorySlug().'">'.html_entity_decode($categ->getCategoryName()).'</a> | ';
+                    endforeach;
+                    endif;
+                ?>
+                <p><?=nl2br(html_entity_decode($article->getArticleText()))?></p>
+            </div>
+            <?php
+        endforeach;
+    endif;
     ?>
 
-<?php var_dump($articles); ?>
+<?php //var_dump($articles); ?>
 </body>
 </html>

@@ -18,6 +18,9 @@
         <div  class="article">
             <h3><?=html_entity_decode($article->getArticleTitle())?></h3>
             <h4>Écrit le <?=$article->getArticleDate()?></h4>
+            <?php
+
+            ?>
             <p><?=nl2br(html_entity_decode($article->getArticleText())); ?></p>
         </div>
 

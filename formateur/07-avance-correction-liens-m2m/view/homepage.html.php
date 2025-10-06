@@ -60,7 +60,7 @@
         endforeach;
     endif;
     ?>
-<?php var_dump($nosArticle); ?>
+<?php //var_dump($nosArticle); ?>
 
 </body>
 </html>

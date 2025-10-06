@@ -214,19 +214,17 @@ class ArticleManager implements ManagerInterface, CrudInterface
         $query->closeCursor();
         return $result;
     }
-    /*
-     *
-     * ICI
-     *
-     *
-     */
+
 
     public function readAllVisibleByCategorySlug(string $slugCateg,bool $orderDesc = true): array
     {
         $sql = "
             SELECT a.`id`, a.`article_title`, a.`article_slug`, LEFT(a.`article_text`,250) AS `article_text`, a.`article_date`,
-                   GROUP_CONCAT(c.`category_name` SEPARATOR 'µ|||µ') as category_name , 
-                   GROUP_CONCAT(c.`category_slug`SEPARATOR 'µ|||µ') as category_slug
+                   (
+                   SELECT GROUP_CONCAT(ca.`category_name`,'|||', ca.`category_slug` SEPARATOR '---')
+                   FROM `category` ca
+                       INNER JOIN `article_has_category` ahc ON ahc.`category_id`=ca.`id` WHERE ahc.`article_id`=a.`id`
+                    ) AS `categories`
 
             FROM `article` a
             
@@ -254,12 +252,20 @@ class ArticleManager implements ManagerInterface, CrudInterface
             $result[] = new ArticleMapping($item);
 
             // s'il y a une ou plusieurs catégories
-            if(!is_null($item['category_name'])&&!is_null($item['category_slug'])){
+            if(!is_null($item['categories'])){
 
                 // création d'un tableau (1 entrée minimum)
                 // en divisant par les SEPARATOR de MySQL
-                $name = explode('µ|||µ',$item['category_name']);
-                $slug = explode('µ|||µ',$item['category_slug']);
+                $categs = explode('---',$item['categories']);
+                // on crée 2 tableaux pour nom et slug
+                $name = [];
+                $slug = [];
+                // on divise chaque entrée par '|||'
+                foreach ($categs as $categ){
+                    $parts = explode('|||',$categ);
+                    $name[]=$parts[0];
+                    $slug[]=$parts[1];
+                }
 
                 // on compte le nombre de category
                 $countCateg = count($name);
