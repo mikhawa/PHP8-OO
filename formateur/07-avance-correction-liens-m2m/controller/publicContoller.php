@@ -45,8 +45,11 @@ if (!isset($_GET['p'])) {
         case 'category':
             if(!empty($_GET['slug'])){
                 // on récupère la catégorie par son slug
-                $category = $CategoryManager->readBySlug($_GET['slug']);
+                $category = $CategoryManager->readBySlug
+                ($_GET['slug']);
                 if($category !== false){
+                    // on récupère les articles qui sont dans cette catégorie
+                    $articles = $ArticleManager->readAllVisibleByCategorySlug($_GET['slug']);
                     // on affiche la catégorie
                     include RACINE_PATH . "/view/category.html.php";
                 }else{

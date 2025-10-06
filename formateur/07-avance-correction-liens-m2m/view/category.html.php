@@ -19,7 +19,10 @@
             <h3><?=html_entity_decode($category->getCategoryName())?></h3>
             <p><?=!is_null($category->getCategoryDesc())?nl2br(html_entity_decode($category->getCategoryDesc())):"Pas de description"; ?></p>
         </div>
+    <?php
 
-<?php //var_dump($connectPDO,$ArticleManager,$nosArticle); ?>
+    ?>
+
+<?php var_dump($articles); ?>
 </body>
 </html>

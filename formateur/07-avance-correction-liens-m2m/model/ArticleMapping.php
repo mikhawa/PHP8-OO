@@ -5,16 +5,36 @@ namespace model;
 use Exception;
 
 class ArticleMapping extends AbstractMapping{
-    // propriétés = champs de la table
+    /*
+     * propriétés = champs de la table article
+     */
     protected ?int $id=null; // entier positif
     protected ?string $article_title=null; // string de 120 max et 6 minimum sans tags, sans espace devant et derrière, caractères spéciaux encodés
     protected ?string $article_slug=null; // string de 125 max et 6 minimum sans tags, sans espace devant et derrière, caractères spéciaux encodés
     protected ?string $article_text=null; // minimum 20 caractères, sans tags, sans espace devant et derrière, caractères spéciaux encodés
     protected ?string $article_date=null; // doit être une date valide si remplie sinon erreur
     protected null|bool|int $article_visibility=null; // si int convertir en bool, si bool, attribuer la valeur
-    protected ?array $category=[]; // contiendra les catégories de l'article actuel
+
+    /*
+     * contiendra les catégories de l'article actuel
+     * ne vient pas du mapping de la table article
+     */
+    protected ?array $category=[];
+
+    // récupération des catégories de l'article (s'il y en a)
+    public function getCategory(): ?array
+    {
+        return $this->category;
+    }
+
+    public function setCategory(?array $category): void
+    {
+        $this->category = $category;
+    }
+
 
     // méthodes
+
 
 
 

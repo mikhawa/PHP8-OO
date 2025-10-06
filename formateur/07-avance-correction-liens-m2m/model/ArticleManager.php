@@ -156,16 +156,128 @@ class ArticleManager implements ManagerInterface, CrudInterface
     // pour la page d'accueil
     public function readAllVisible(bool $orderDesc = true): array
     {
-        $sql = "SELECT `id`, `article_title`, `article_slug`, LEFT(`article_text`,250) AS `article_text`, `article_date`  FROM `article` WHERE `article_visibility`=1 ";
+        $sql = "
+            SELECT a.`id`, a.`article_title`, a.`article_slug`, LEFT(a.`article_text`,250) AS `article_text`, a.`article_date`,
+                   GROUP_CONCAT(c.`category_name` SEPARATOR 'µ|||µ') as category_name , 
+                   GROUP_CONCAT(c.`category_slug`SEPARATOR 'µ|||µ') as category_slug
+
+            FROM `article` a
+            
+                LEFT JOIN `article_has_category` h
+                    ON h.`article_id` = a.`id`
+                
+                LEFT JOIN `category` c    
+                    ON h.`category_id` = c.`id`
+            
+            WHERE a.`article_visibility`=1
+            GROUP BY a.`id` ";
+
+
         if($orderDesc===true)
-            $sql .= "ORDER BY `article_date` DESC";
+            $sql .= "ORDER BY a.`article_date` DESC";
         $query = $this->db->query($sql);
         $stmt = $query->fetchAll(PDO::FETCH_ASSOC);
         // si jamais pas d'articles, on a quand même un tableau
         $result=[];
+        // tant qu'on a des articles
         foreach ($stmt as $item){
+
             // réutilisation des setters
             $result[] = new ArticleMapping($item);
+
+            // s'il y a une ou plusieurs catégories
+            if(!is_null($item['category_name'])&&!is_null($item['category_slug'])){
+
+                // création d'un tableau (1 entrée minimum)
+                // en divisant par les SEPARATOR de MySQL
+                $name = explode('µ|||µ',$item['category_name']);
+                $slug = explode('µ|||µ',$item['category_slug']);
+
+                // on compte le nombre de category
+                $countCateg = count($name);
+
+                // création du tableau de catégorie,
+                $categList=[];
+                // on va créer une boucle tant qu'on a des catégories
+                for($i=0;$i<$countCateg;$i++){
+                    $categName = $name[$i];
+                    $categSlug = $slug[$i];
+                    $categList[] = new CategoryMapping([
+                        'category_name'=>$categName,
+                        'category_slug'=>$categSlug
+                    ]);
+                }
+                $result[count($result)-1]->setCategory($categList);
+
+            }
+        }
+        $query->closeCursor();
+        return $result;
+    }
+    /*
+     *
+     * ICI
+     *
+     *
+     */
+
+    public function readAllVisibleByCategorySlug(string $slugCateg,bool $orderDesc = true): array
+    {
+        $sql = "
+            SELECT a.`id`, a.`article_title`, a.`article_slug`, LEFT(a.`article_text`,250) AS `article_text`, a.`article_date`,
+                   GROUP_CONCAT(c.`category_name` SEPARATOR 'µ|||µ') as category_name , 
+                   GROUP_CONCAT(c.`category_slug`SEPARATOR 'µ|||µ') as category_slug
+
+            FROM `article` a
+            
+                LEFT JOIN `article_has_category` h
+                    ON h.`article_id` = a.`id`
+                
+                LEFT JOIN `category` c    
+                    ON h.`category_id` = c.`id`
+            
+            WHERE a.`article_visibility`=1 AND c.`category_slug` = ?
+            GROUP BY a.`id` ";
+
+
+        if($orderDesc===true)
+            $sql .= "ORDER BY a.`article_date` DESC";
+        $query = $this->db->prepare($sql);
+        $query->execute([$slugCateg]);
+        $stmt = $query->fetchAll(PDO::FETCH_ASSOC);
+        // si jamais pas d'articles, on a quand même un tableau
+        $result=[];
+        // tant qu'on a des articles
+        foreach ($stmt as $item){
+
+            // réutilisation des setters
+            $result[] = new ArticleMapping($item);
+
+            // s'il y a une ou plusieurs catégories
+            if(!is_null($item['category_name'])&&!is_null($item['category_slug'])){
+
+                // création d'un tableau (1 entrée minimum)
+                // en divisant par les SEPARATOR de MySQL
+                $name = explode('µ|||µ',$item['category_name']);
+                $slug = explode('µ|||µ',$item['category_slug']);
+
+                // on compte le nombre de category
+                $countCateg = count($name);
+
+                // création du tableau de catégorie,
+                $categList=[];
+                // on va créer une boucle tant qu'on a des catégories
+                for($i=0;$i<$countCateg;$i++){
+                    $categName = $name[$i];
+                    $categSlug = $slug[$i];
+                    $categList[] = new CategoryMapping([
+                        'category_name'=>$categName,
+                        'category_slug'=>$categSlug
+                    ]);
+                }
+                $result[count($result)-1]->setCategory($categList);
+
+            }
         }
         $query->closeCursor();
         return $result;

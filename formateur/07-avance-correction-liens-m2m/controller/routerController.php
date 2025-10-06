@@ -12,7 +12,7 @@
  * à l'entièreté du site
  */
 // ici pour les articles
-use model\ArticleMapping;
+use model\ArticleMapping\lulu;
 use model\ArticleManager;
 
 // ici pour les catégories
