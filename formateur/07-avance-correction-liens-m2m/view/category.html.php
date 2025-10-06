@@ -44,7 +44,8 @@
                     endforeach;
                     endif;
                 ?>
-                <p><?=nl2br(html_entity_decode($article->getArticleText()))?></p>
+                </h4>
+                <p><?=$ArticleManager::cutTheText(html_entity_decode($article->getArticleText()),150)?></p>
             </div>
             <?php
         endforeach;
