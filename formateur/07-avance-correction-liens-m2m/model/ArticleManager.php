@@ -190,6 +190,21 @@ class ArticleManager implements ManagerInterface, CrudInterface
         $prepare->bindValue("visibility", $data->getArticleVisibility(), PDO::PARAM_INT);
         try{
             $prepare->execute();
+            // on supprime les anciennes catégories
+            $sqlDel = "DELETE FROM `article_has_category` WHERE `article_id`=?";
+            $prepareDel = $this->db->prepare($sqlDel);
+            $prepareDel->execute([$id]);
+            // si on a coché des catégories
+            if(isset($_POST['categ']) && is_array($_POST['categ']) && count($_POST['categ'])>0){
+                // on prépare la requête d'insertion dans la table de liaison
+                $sqlHas = "INSERT INTO `article_has_category` (`article_id`, `category_id`) VALUES (?,?)";
+                $prepareHas = $this->db->prepare($sqlHas);
+                // on boucle sur les catégories cochées
+                foreach ($_POST['categ'] as $categId){
+                    // on insère la liaison article - catégorie
+                    $prepareHas->execute([$id,$categId]);
+                }
+            }
             return true;
         }catch (Exception $e){
             return $e->getMessage();
