@@ -35,13 +35,12 @@
     if(isset($nosCategory) && !empty($nosCategory)):
         foreach ($nosCategory as $category):
             $checked = '';
-            // on vérifie si la catégorie actuelle fait partie des catégories de l'article
+            // si au moins une catégorie est liée à l'article
             if(!empty($article->getCategory())):
-                foreach ($article->getCategory() as $catArt):
-                    if($catArt == $category->getId()){
-                        $checked = 'checked';
-                    }
-                endforeach;
+                // si elle est dans le tableau des catégories de l'article
+                if(in_array($category->getId(), $article->getCategory())):
+                    $checked = 'checked';
+                endif;
             endif;
             ?>
             <input type="checkbox" name="categ[]" value="<?=$category->getId()?>" <?=$checked?>><?=html_entity_decode($category->getCategoryName())?>
