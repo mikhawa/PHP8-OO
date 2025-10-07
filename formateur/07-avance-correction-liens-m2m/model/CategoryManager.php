@@ -121,6 +121,17 @@ class CategoryManager implements CrudInterface, ManagerInterface
 
     public function delete(int $id): true|string
     {
+        // avant de supprimer une catégorie,
+        // il faut supprimer les liens dans article_category
+        $sql = "DELETE FROM article_has_category WHERE category_id = :id";
+        try {
+            $query = $this->db->prepare($sql);
+            $query->bindValue(":id", $id, PDO::PARAM_INT);
+            $query->execute();
+        }catch (Exception $e){
+            return $e->getMessage();
+        }
+        // puis on supprime la catégorie
         $sql = "DELETE FROM category WHERE id = :id";
         try {
             $query = $this->db->prepare($sql);
