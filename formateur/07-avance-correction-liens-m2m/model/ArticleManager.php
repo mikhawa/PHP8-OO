@@ -30,6 +30,7 @@ class ArticleManager implements ManagerInterface, CrudInterface
     {
         $sql = "INSERT INTO `article` (`article_title`, `article_slug`, `article_text`, `article_visibility`) VALUES (?,?,?,?)";
         $prepare = $this->db->prepare($sql);
+
         try {
             $prepare->execute([
                 $data->getArticleTitle(),
@@ -37,12 +38,27 @@ class ArticleManager implements ManagerInterface, CrudInterface
                 $data->getArticleText(),
                 $data->getArticleVisibility()
             ]);
+            // si on a coché des catégories
+            if(isset($_POST['categ']) && is_array($_POST['categ']) && count($_POST['categ'])>0){
+                // on récupère l'id de l'article inséré
+                $lastId = $this->db->lastInsertId();
+                // on prépare la requête d'insertion dans la table de liaison
+                $sqlHas = "INSERT INTO `article_has_category` (`article_id`, `category_id`) VALUES (?,?)";
+                $prepareHas = $this->db->prepare($sqlHas);
+
+                // on boucle sur les catégories cochées
+                foreach ($_POST['categ'] as $categId){
+                    // on insère la liaison article - catégorie
+                    $prepareHas->execute([$lastId,$categId]);
+                }
+            }
             return true;
         }catch (Exception $e){
             return $e->getMessage();
         }
 
     }
+
 
     public function readById(int $id): bool|AbstractMapping
     {

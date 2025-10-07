@@ -33,6 +33,17 @@
             <option value="1">Visible</option>
             <option value="0">Non visible</option>
         </select><br><br>
+        <label for="article_category">Catégories</label><br>
+            <?php
+            if(isset($nosCategory) && !empty($nosCategory)):
+                foreach ($nosCategory as $category):
+                    ?>
+                    <input type="checkbox" name="categ[]" value="<?=$category->getId()?>"><?=html_entity_decode($category->getCategoryName())?>
+                    <?php
+                endforeach;
+            endif;
+            ?>
+        <br><br>
 
         <input type="submit" value="Créer l'article">
         
