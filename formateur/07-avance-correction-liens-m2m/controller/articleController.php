@@ -95,6 +95,8 @@ switch ($_GET['p']) {
                 $message = "Cet article n'existe plus";
                 include RACINE_PATH . "/view/404.html.php";
             } else {
+                // récupération des catégories pour le formulaire
+                $nosCategory = $CategoryManager->readAll();
                 include RACINE_PATH . "/view/article.update.html.php";
             }
         else:

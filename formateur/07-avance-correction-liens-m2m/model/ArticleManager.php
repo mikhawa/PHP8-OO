@@ -62,7 +62,14 @@ class ArticleManager implements ManagerInterface, CrudInterface
 
     public function readById(int $id): bool|AbstractMapping
     {
-        $sql = "SELECT * FROM `article` WHERE `id` = ?";
+        $sql = "SELECT a.*,
+                    GROUP_CONCAT(h.`category_id`) as category_id
+                FROM `article` a
+                    LEFT JOIN `article_has_category` h ON a.`id` = h.`article_id`
+                WHERE a.`id` = ?
+                GROUP BY a.`id` ";
+
+
         $prepare = $this->db->prepare($sql);
         $prepare->bindValue(1,$id,PDO::PARAM_INT);
         try{
@@ -72,6 +79,12 @@ class ArticleManager implements ManagerInterface, CrudInterface
                 return false;
             // on a un article
             $result = $prepare->fetch(PDO::FETCH_ASSOC);
+            // si on a des catégories
+            if(!is_null($result['category_id'])){
+                // on crée un tableau en divisant par les ','
+                $categId = explode(',',$result['category_id']);
+                $result['category'] = $categId;
+            }
             // création de l'instance de type ArticleMapping
             $article = new ArticleMapping($result);
             $prepare->closeCursor();

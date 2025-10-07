@@ -30,12 +30,34 @@
             <option value="0" <?= !$article->getArticleVisibility() ? 'selected' : '' ?>>Non visible</option>
         </select><br><br>
 
+    <label for="article_category">Catégories</label><br>
+    <?php
+    if(isset($nosCategory) && !empty($nosCategory)):
+        foreach ($nosCategory as $category):
+            $checked = '';
+            // on vérifie si la catégorie actuelle fait partie des catégories de l'article
+            if(!empty($article->getCategory())):
+                foreach ($article->getCategory() as $catArt):
+                    if($catArt == $category->getId()){
+                        $checked = 'checked';
+                    }
+                endforeach;
+            endif;
+            ?>
+            <input type="checkbox" name="categ[]" value="<?=$category->getId()?>" <?=$checked?>><?=html_entity_decode($category->getCategoryName())?>
+        <?php
+        endforeach;
+    endif;
+    ?>
+    <br><br>
+
         <input type="submit" value="Mettre à jour l'article">
 
     </form>
 <?php /* var_dump($_POST);
-// si on a soumis le formulaire
+// si on a soumis le formulaire*/
 if(isset($article)) var_dump($article);
+/*
 if(isset($updateArticle)) var_dump($updateArticle); */
 ?>
 </body>
