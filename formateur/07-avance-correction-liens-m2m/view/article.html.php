@@ -17,6 +17,18 @@
 
         <div  class="article">
             <h3><?=html_entity_decode($article->getArticleTitle())?></h3>
+            <?php if (!empty($article->getCategory())) :
+                  $nbCat = count($article->getCategory());
+                  $plural = $nbCat > 1 ? 's' : '';
+            ?>
+            <h4>Catégorie<?=$plural?> :
+                <?php foreach ($article->getCategory() as $category) : ?>
+                    <a href="./?p=category&slug=<?=$category->getCategorySlug()?>"><?=nl2br(html_entity_decode($category->getCategoryName()))?></a> |
+                <?php endforeach; ?>
+            </h4>
+            <?php endif;
+
+             ?>
             <h4>Écrit le <?=$article->getArticleDate()?></h4>
             <?php
 

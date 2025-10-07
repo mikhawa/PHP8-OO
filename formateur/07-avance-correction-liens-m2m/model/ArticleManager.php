@@ -68,7 +68,19 @@ class ArticleManager implements ManagerInterface, CrudInterface
 
     public function readBySlug(string $slug): bool|AbstractMapping
     {
-        $sql = "SELECT * FROM `article` WHERE `article_slug` = ? AND `article_visibility`=1";
+        $sql = "SELECT a.*, 
+                    GROUP_CONCAT(c.`category_name` SEPARATOR '|||') as category_name,
+                    GROUP_CONCAT(c.`category_slug`SEPARATOR '|||') as category_slug
+
+                FROM `article` a
+            
+                LEFT JOIN `article_has_category` h
+                    ON h.`article_id` = a.`id`
+                
+                LEFT JOIN `category` c    
+                    ON h.`category_id` = c.`id`
+                WHERE `article_slug` = ? AND `article_visibility`=1
+                GROUP BY a.`id` ";
         $prepare = $this->db->prepare($sql);
         $prepare->bindValue(1,$slug);
         try{
@@ -80,6 +92,27 @@ class ArticleManager implements ManagerInterface, CrudInterface
             $result = $prepare->fetch(PDO::FETCH_ASSOC);
             // création de l'instance de type ArticleMapping
             $article = new ArticleMapping($result);
+            // s'il y a une ou plusieurs catégories
+            if(!is_null($result['category_name'])&&!is_null($result['category_slug'])){
+                // création d'un tableau (1 entrée minimum)
+                // en divisant par les SEPARATOR de MySQL
+                $name = explode('|||',$result['category_name']);
+                $slug = explode('|||',$result['category_slug']);
+                // on compte le nombre de category
+                $countCateg = count($name);
+                // création du tableau de catégorie,
+                $categList=[];
+                // on va créer une boucle tant qu'on a des catégories
+                for($i=0;$i<$countCateg;$i++){
+                    $categName = $name[$i];
+                    $categSlug = $slug[$i];
+                    $categList[] = new CategoryMapping([
+                        'category_name'=>$categName,
+                        'category_slug'=>$categSlug
+                    ]);
+                }
+                $article->setCategory($categList);
+            }
             $prepare->closeCursor();
             return $article;
 
