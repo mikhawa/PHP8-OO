@@ -215,9 +215,15 @@ class ArticleManager implements ManagerInterface, CrudInterface
 
     public function delete(int $id)
     {
+        // on supprime l'article
         $sql = "DELETE FROM `article` WHERE `id`=?";
         $prepare = $this->db->prepare($sql);
+        // on supprime les anciennes catégories (si pas de cascade delete)
+        $sqlDel = "DELETE FROM `article_has_category` WHERE `article_id`=?";
+        $prepareDel = $this->db->prepare($sqlDel);
+
         try{
+            $prepareDel->execute([$id]);
             $prepare->execute([$id]);
             return true;
         }catch(Exception $e){
