@@ -122,7 +122,7 @@ class CategoryManager implements CrudInterface, ManagerInterface
     public function delete(int $id): true|string
     {
         // avant de supprimer une catégorie,
-        // il faut supprimer les liens dans article_category
+        // il faut supprimer les liens dans article_category (si pas de contrainte avec cascade)
         $sql = "DELETE FROM article_has_category WHERE category_id = :id";
         try {
             $query = $this->db->prepare($sql);
